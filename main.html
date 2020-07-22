@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title> RTLSDR - FM Radio Decoding </title>
+    </head>
+    <body>
+        <a href="../main.html"> Back to the main page </a>
+        <br>
+        
+        <h1> What I Learned </h1>
+        <ul> 
+			<li> You can use the command <tt> rtl_sdr </tt> to get .dat files that you can read with external programs. The inputs for the command are:
+			<ul>
+				<li> -f : specify a frequency in HZ</li>
+				<li> -s : specify the sampling rate in HZ</li>
+				<li> -n : specify the number of samples </li>
+				<li> -g : gain in dB </li>
+				<li> -p : ppm error </li>
+				<li> outputfile name : Must specify an output file to write the data to</li>
+			</ul>
+			The data is written in 8 bit unsigned format. 
+			</li>
+			<li> How to read from a directory in C using the dirent.h and sys/types.h library. You can use the <tt> opendir(char * string) </tt> command to open
+			a directory and then pass the directory structure to <tt>readdir(DIR d)</tt> in order to read from the directory</li>
+			<li> C cannot return an array from a function directly. There are three ways to do this:
+			<ol> 
+			<li> Using dynamically allocated array. I take this approach in the process_fm code. In order to output a list of files the user can read from as well
+			as return that list of files, I create a 2D char array. The first dimension stores the pointers (up to 10) to each char array that can have up to 20 characters
+			in the filename. </li>
+			<li> Using static array </li>
+			<li> Using a structure. I since modified my dynamically allocated approach to a structure-based approach so that I can also include the number of files that are readable. </li>
+			</ol>
+			
+			</li>
+        </ul>
+        
+	<h1> Radio Captures </h1>
+	The following two captures were made at a 2.5MHz sampling rate. 25M samples were collected, therefore 10 sec of data. 
+	<ul>
+		<li> rock_capture : 94500900Hz. 0dB gain. </li>
+		<li> lower freq capture : 27772000Hz. Also with 10dB gain.</li>
+	</ul>
+        
+        <h1> Questions </h1>
+        The following questions came up while I was writing this program
+        <ol>
+        <li> How to return a multidimensional array from a function? </li>
+	<li> How to convert from string to int</li>
+        </ol>
+    </body>
+</html>
