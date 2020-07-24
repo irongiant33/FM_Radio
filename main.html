@@ -1,11 +1,79 @@
 <html>
     <head>
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <title> RTLSDR - FM Radio Decoding </title>
     </head>
     <body>
         <a href="../main.html"> Back to the main page </a>
         <br>
-        
+	
+	<h1> Math behind FM Radio </h1>
+	<p>
+	The purpose of FM radio is to capture a voice signal, like a song, and transmit it to listeners that are far away from where the voice signal originates.
+	The problem with voice is that is inherently very low frequency: 500 to 15000 Hz. If we have a digital voice signal that we want to transmit, it would require 
+	an antenna nearly 5000m long (if you're using a quarter wave antenna)! The solution is to modulate our voice signal onto a higher frequency carrier, let's say 
+	94.5MHz, the frequency of my favorite rock station. Using the equation \(c=\lambda f\) we find that the wavelength of that carrier is ~3m. If we use a quarter wave 
+	antenna, that becomes a much more reasonably 75cm that we can easily put in a car or radio receiver. 
+	</p>
+	<p>
+	So I glossed over the key principle of FM radio just then. I said our solution is to modulate our voice signal onto a higher frequency carrier. How do you modulate something?
+	We know the wave equation is \(V(t) = A sin(2\pi f t)\ + \phi). \(V(t)\) represents the voltage of our digital signal over time, \(A\) represents the amplitude of our signal,
+	\(f\) represents the frequency of our signal, and \(\phi\) represents the phase of our signal. We can control the amplitude, frequency, and phase, so we have the option to modulate
+	any of these three quantities. We'll denote the carrier signal with \(V_c(t) = A_c sin(2\pi f_c t) + \phi_c\), a simple sinusoid with one frequency. Our voice signal that we want to 
+	modulate is a little more complicated because it is a combination of multiple signals of different frequencies and varying amplitudes. We'll represent our voice signal with \(V_s(t)\).
+	</p>
+	<p>
+	Recognizing that I want to explain FM modulation, I actually want to start with AM because it is a little simpler. To modulate the amplitude we want the amplitude of our transmitted signal
+	to vary according to the voltage level of our carrier wave. If the carrier voltage level is low, I want a low amplitude, and if the carrier voltage level is high, I want a high amplitude. We
+	can represent this mathematically by \(A = A_c + V_s(t)\) where \(A\) is the amplitude of the signal we want ot transmit. We simply substitute this back into our carrier wave equation and yield
+	\(V_c(t) = (A_c + V_s(t))sin(2\pi f_c t + \phi)\) and voila we have an amplitude modulated signal.
+	</p>
+	<p>
+	The concept for FM is the same. We have to add a value to \(f_c\), but the trick is it has to be a frequency term. It isn't as straightforward as amplitude where we can just add our voice signal 
+	to the amplitude to get AM. Instead, we introduce a new term \(\delta f\) which is the frequency swing. The frequency swing represents how much the carrier frequency will increase or decrease from
+	its nominal value. This should be the maximum swing, so that \(B = 2\delta f\) where \(B\) is the bandwidth of the signal. Now we must include \(V_s(t)\) in our expression somehow in order to 
+	actually modulate the frequency. We will express it as a ratio in order to cancel the voltage terms: \(\beta = \frac{V_s(t)}{max(V_s(t))}\). This expression puts the instantaneous voltage value of the 
+	voice signal as a ratio of -1 to 1 of the maximum voltage level of our voice. Therefore, the frequency term now becomes \(f = f_c + \delta f \beta\).
+	</p>
+	<p>
+	Where is was evident in the amplitude modulation case to just add our modulated signal to the amplitude of the carrier before amplifying the base sinusoid, it is not as trivial to add a frequency
+	ratio to the base carrier sinusoid. This begs the question of how to get the following wave expression: \(V_c(t) = A sin(2\pi (f_c+\delta f \frac{V_s(t)}{max(V_s(t))}) + \phi_c)\). If the answer isn't 
+	already intuitive to you, it is best to first imagine what is going on in the frequency dimension of FM radio. We have a carrier signal with high frequency impulses (for the sake of argument). Our voice
+	signal is represented by a set of low frequencies. Imagine our voice signal as a rectangle with one end at 0 Hz and the other at 15kHz. We are taking our low frequency voice signal and convolving it with
+	the higher frequency carrier such that the output resembles two rectangles with half the height centered around the positive and negative carrier frequencies. If we performed a convolution of the signals in the
+	frequency domain, the equivalent operation in the time domain is multiplication. That long explanation was just to tell you the way we achieve frequency modulation is by multiplying the time domain signals.
+	</p>
+	<p>
+	Let \(x=2\pi f_c t + \phi_c\) and \(y=2\pi\delta f\frac{V_s(t)}{max(V_s(t))}t+\phi\).
+	\[V_m(t) = A_c cos(x) A_s cos(y)\]
+	\[V_m(t) = A_c A_s (\frac{e^{jx}+e^{-jx})}{2})(\frac{e^{jy}+e^{-jy})}{2})\]
+	\[V_m(t) = \frac{A_c A_s}{4}(e^{jx}e^{jy}+e^{jx}e^{-jy}+e^{-jx}e^{jy}+e^{-jx}e^{-jy})\]
+	\[V_m(t) = \frac{A_c A_s}{4}(e^{j(x+y)} + e^{j(x-y)} + e^{-j(x-y)} + e^{-j(x+y)})\]
+	\[V_m(t) = \frac{A_c A_s}{2}(\frac{e^{j(x+y)}+e^{-j(x+y)}}{2} + \frac{e^{j(x-y)}+e^{-j(x-y)}}{2})\]
+	\[V_m(t) = \frac{A_c A_s}{2}(cos(x+y) + cos(x-y))\]
+	</p>
+	<p>
+	Equation 2 is simplified by euler's formula. The resulting expression in equation 5 and 6 shows that we have frequency peaks spaced \(\delta f\) apart from the carrier
+	frequency peaks in both the positive and negative frequency dimension. In practice, our \(\beta\) value will fluctuate between -1 and 1, creating a rectangle centered
+	at these carrier frequencies.
+	</p>
+	<p>
+	Demodulation performs the opposite operation as modulation. In order to extract the voice signal from an FM wave we convolve it with the carrier signal in the frequency dimension
+	which means multiplying it with the carrier signal in the time dimension. Draw the convolution out on a piece of paper first and then verify it with math:
+	\[V_d(t) = V_m(t) V_c(t)\]
+	\[V_d(t) = \frac{A_c A_s}{2}(cos(x+y) + cos(x-y)) A_c cos(x)\]
+	\[V_d(t) = \frac{A_c^2 A_s}{2}(\frac{e^{j(x+y)}+e^{-j(x+y)}}{2} + \frac{e^{j(x-y)}+e^{-j(x-y)}}{2})(\frac{e^{jx}+e^{-jx}}{2})\]
+	\[V_d(t) = \frac{A_c^2 A_s}{8}(e^{j(x+y)}e^{jx} + e^{j(x+y)}e^{-jx} + e^{-j(x+y)}e^{jx} + e^{-j(x+y)}e^{-jx} + e^{j(x-y)}e^{jx} + e^{j(x-y)}e^{-jx} + e^{-j(x-y)}e^{jx} + e^{-j(x-y)}e^{-jx})\]
+	\[V_d(t) = \frac{A_c^2 A_s}{8}(e^{j(2x+y)} + e^{jy} + e^{-jy} + e^{-j(2x+y)} + e^{j(2x-y)} + e^{-jy} + e^{jy} + e^{-j(2x-y)})\]
+	\[V_d(t) = \frac{A_c^2 A_s}{4}(\frac{e^{j(2x+y)}+e^{-j(2x+y)}}{2} + e^{jy} + e^{-jy} + \frac{e^{j(2x-y)}+e^{-j(2x-y)}}{2})\]
+	\[V_d(t) = \frac{A_c^2 A_s}{4}(cos(2x+y) + cos(2x-y)) + \frac{A_c^2 A_s}{2}(\frac{e^{jy}+e^{-jy}}{2})\]
+	\[V_d(t) = \frac{A_c^2 A_s}{4}(cos(2x+y) + cos(2x-y)) + \frac{A_c^2 A_s}{2} cos(y)\]
+	</p>
+	<p>
+	Now we have two high frequency signals (two times as high as the original carrier) as well as the baseband signal. 
+	</p>
+
         <h1> What I Learned </h1>
         <ul> 
 			<li> You can use the command <tt> rtl_sdr </tt> to get .dat files that you can read with external programs. The inputs for the command are:
@@ -28,6 +96,8 @@
 			in the filename. </li>
 			<li> Using static array </li>
 			<li> Using a structure. I since modified my dynamically allocated approach to a structure-based approach so that I can also include the number of files that are readable. </li>
+			<li> How to read from binary data file. The issue I was having was that I did not include the path to the binary file. Since we know the file is encoded with unsigned 8 bit integer, each
+			value only takes up 1 byte. Needed to make a string concatenation function to be able to add the file path to the file name and read the binary file. </li>
 			</ol>
 			
 			</li>
@@ -47,8 +117,8 @@
         The following questions came up while I was writing this program
         <ol>
         <li> How to return a multidimensional array from a function? </li>
-	<li> How to convert from string to int</li>
-	<li> How to read from a binary data file if you don't know the format </li>
+	<li> How to convert from string to int</li
+	<li> Writing a proper integer to string conversion file </li>
         </ol>
     </body>
 </html>

@@ -61,15 +61,50 @@ struct input_files getfile(struct input_files captures){
 	return captures;
 }
 
+char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+    // in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
+
+char* itoa(u_int8_t val, u_int8_t base){
+	static char buf[32] = {0};
+	u_int8_t i = 30;
+	for(; val && i ; --i, val /= base)
+		buf[i] = "0123456789abcdef"[val % base];
+	return &buf[i+1];
+}
+
 void decode(struct input_files captures){
 	FILE *fm_file;
-	fm_file = fopen(captures.files[captures.chosen_file-1], "r");
-	char buff[250];
+	FILE *temp_file;
+	char *file_name = concat("captures/",captures.files[captures.chosen_file-1]);
+	printf("filename: %s\n",file_name);
+	fm_file = fopen(file_name, "rb");
+	u_int8_t buff[2];
 	
-	//location in memory, size in bytes of elements, number of elements to read, file to read from.
-	fread(buff,1,100,fm_file);
-	printf("The first byte: %d\n",buff[1]);
-	
+	//clear the file before appending
+	temp_file = fopen("temp.csv","w");
+	fclose(temp_file);
+	temp_file = fopen("temp.csv", "a");
+	//fread: location in memory, size in bytes of elements, number of elements to read, file to read from.
+	while(fread(&buff,1,2,fm_file)){
+		char *firstbyte = itoa(buff[0],10);
+		//the below commented code does the same thing as itoa function.
+		//char buffer[8];
+		//snprintf(buffer, 6, "%d", buff[0]); 
+		//printf("The first byte: %d and %s\n",buff[0],firstbyte);
+		fputs(firstbyte,temp_file);
+		fputs(",",temp_file);
+		char *secondbyte = itoa(buff[1],10);
+		//printf("The second byte: %d and %s\n",buff[1],secondbyte);
+		fputs(secondbyte,temp_file);
+		fputs("\n",temp_file);
+	}
+	fclose(temp_file);
 	fclose(fm_file);
 }
 
