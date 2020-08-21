@@ -1,0 +1,6 @@
+5
+filename,sample_rate(Hz),sample_period(s),gain(dB)
+rock_capture_2.dat,2500000,10,0
+lower_freq_radio_2.dat,2500000,10,10
+rock_capture_1.dat,2500000,10,0
+lower_freq_radio_1.dat,2500000,10,0FMcapture1.dat,2500000,10,40

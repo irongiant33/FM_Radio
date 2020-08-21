@@ -21,7 +21,7 @@ struct input_files listfiles(){
 	char directory[] = "./captures";
 	//allocate memory for MAX_FILENUM amount of char pointers.
 	captures.files = malloc(MAX_FILENUM*sizeof(char*));
-	for(int i=0;i<10;i++){
+	for(int i=0;i<MAX_FILENUM;i++){
 		//allocate memory for MAX_FILELEN characters in a filename.
 		captures.files[i] = malloc(MAX_FILELEN*sizeof(char));
 	}
@@ -91,18 +91,21 @@ void decode(struct input_files captures){
 	fclose(temp_file);
 	temp_file = fopen("temp.csv", "a");
 	//fread: location in memory, size in bytes of elements, number of elements to read, file to read from.
-	while(fread(&buff,1,2,fm_file)){
+	int counter = 1;
+	while(fread(&buff,1,2,fm_file) && counter < 10){
+		float inphase = buff[0]-127.5;
 		char *firstbyte = itoa(buff[0],10);
 		//the below commented code does the same thing as itoa function.
 		//char buffer[8];
 		//snprintf(buffer, 6, "%d", buff[0]); 
-		//printf("The first byte: %d and %s\n",buff[0],firstbyte);
+		printf("The first byte: %f and %s\n",inphase,firstbyte);
 		fputs(firstbyte,temp_file);
 		fputs(",",temp_file);
 		char *secondbyte = itoa(buff[1],10);
-		//printf("The second byte: %d and %s\n",buff[1],secondbyte);
+		printf("The second byte: %d and %s\n",buff[1],secondbyte);
 		fputs(secondbyte,temp_file);
 		fputs("\n",temp_file);
+		counter++;
 	}
 	fclose(temp_file);
 	fclose(fm_file);

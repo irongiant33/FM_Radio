@@ -12,40 +12,58 @@
 	<p>
 	The purpose of FM radio is to capture a voice signal, like a song, and transmit it to listeners that are far away from where the voice signal originates.
 	The problem with voice is that is inherently very low frequency: 500 to 15000 Hz. If we have a digital voice signal that we want to transmit, it would require 
-	an antenna nearly 5000m long (if you're using a quarter wave antenna)! The solution is to modulate our voice signal onto a higher frequency carrier, let's say 
+	an antenna nearly 5000m long (if you're using a quarter wave antenna)! 
+	</p>
+	<p>
+	The solution is to modulate our voice signal onto a higher frequency carrier, let's say 
 	94.5MHz, the frequency of my favorite rock station. Using the equation \(c=\lambda f\) we find that the wavelength of that carrier is ~3m. If we use a quarter wave 
 	antenna, that becomes a much more reasonably 75cm that we can easily put in a car or radio receiver. 
 	</p>
 	<p>
 	So I glossed over the key principle of FM radio just then. I said our solution is to modulate our voice signal onto a higher frequency carrier. How do you modulate something?
-	We know the wave equation is \(V(t) = A sin(2\pi f t)\ + \phi). \(V(t)\) represents the voltage of our digital signal over time, \(A\) represents the amplitude of our signal,
+	We know the wave equation is \(V(t) = A sin(2\pi f t)\ + \phi).  \(V(t)\) represents the voltage of our digital signal over time, \(A\) represents the amplitude of our signal,
 	\(f\) represents the frequency of our signal, and \(\phi\) represents the phase of our signal. We can control the amplitude, frequency, and phase, so we have the option to modulate
-	any of these three quantities. We'll denote the carrier signal with \(V_c(t) = A_c sin(2\pi f_c t) + \phi_c\), a simple sinusoid with one frequency. Our voice signal that we want to 
+	any of these three quantities (really just two though because frequency and phase are one in the same). We'll denote the carrier signal with \(V_c(t) = A_c sin(2\pi f_c t) + \phi_c\), a simple sinusoid with one frequency. Our voice signal that we want to 
 	modulate is a little more complicated because it is a combination of multiple signals of different frequencies and varying amplitudes. We'll represent our voice signal with \(V_s(t)\).
 	</p>
+	<h2> AM </h2>
 	<p>
 	Recognizing that I want to explain FM modulation, I actually want to start with AM because it is a little simpler. To modulate the amplitude we want the amplitude of our transmitted signal
 	to vary according to the voltage level of our carrier wave. If the carrier voltage level is low, I want a low amplitude, and if the carrier voltage level is high, I want a high amplitude. We
 	can represent this mathematically by \(A = A_c + V_s(t)\) where \(A\) is the amplitude of the signal we want ot transmit. We simply substitute this back into our carrier wave equation and yield
 	\(V_c(t) = (A_c + V_s(t))sin(2\pi f_c t + \phi)\) and voila we have an amplitude modulated signal.
 	</p>
+	<h2> FM </h2>
 	<p>
 	The concept for FM is the same. We have to add a value to \(f_c\), but the trick is it has to be a frequency term. It isn't as straightforward as amplitude where we can just add our voice signal 
 	to the amplitude to get AM. Instead, we introduce a new term \(\delta f\) which is the frequency swing. The frequency swing represents how much the carrier frequency will increase or decrease from
-	its nominal value. This should be the maximum swing, so that \(B = 2\delta f\) where \(B\) is the bandwidth of the signal. Now we must include \(V_s(t)\) in our expression somehow in order to 
-	actually modulate the frequency. We will express it as a ratio in order to cancel the voltage terms: \(\beta = \frac{V_s(t)}{max(V_s(t))}\). This expression puts the instantaneous voltage value of the 
-	voice signal as a ratio of -1 to 1 of the maximum voltage level of our voice. Therefore, the frequency term now becomes \(f = f_c + \delta f \beta\).
+	its nominal value (usually the carrier frequency). This should be the maximum swing, so that \(B = 2\delta f\) where \(B\) is the bandwidth of the signal unless the highest frequency in our modulated signal is greater than the frequency swing (we'll cover this later in modulation index). Now we must include \(V_s(t)\) in our expression somehow in order to 
+	actually modulate the frequency. We will express it as a ratio in order to cancel the voltage terms: \(\beta (t) = \frac{V_s(t)}{max(V_s(t))}\). This expression puts the instantaneous voltage value of the 
+	voice signal as a ratio of -1 to 1 of the maximum voltage level of our voice. Therefore, the frequency term now becomes \(f = f_c + \delta f \beta (t)\).
 	</p>
 	<p>
 	Where is was evident in the amplitude modulation case to just add our modulated signal to the amplitude of the carrier before amplifying the base sinusoid, it is not as trivial to add a frequency
-	ratio to the base carrier sinusoid. This begs the question of how to get the following wave expression: \(V_c(t) = A sin(2\pi (f_c+\delta f \frac{V_s(t)}{max(V_s(t))}) + \phi_c)\). If the answer isn't 
-	already intuitive to you, it is best to first imagine what is going on in the frequency dimension of FM radio. We have a carrier signal with high frequency impulses (for the sake of argument). Our voice
-	signal is represented by a set of low frequencies. Imagine our voice signal as a rectangle with one end at 0 Hz and the other at 15kHz. We are taking our low frequency voice signal and convolving it with
-	the higher frequency carrier such that the output resembles two rectangles with half the height centered around the positive and negative carrier frequencies. If we performed a convolution of the signals in the
-	frequency domain, the equivalent operation in the time domain is multiplication. That long explanation was just to tell you the way we achieve frequency modulation is by multiplying the time domain signals.
+	ratio to the base carrier sinusoid. I am not sure why the following is not the correct wave expression: \(V_c(t) = A sin(2\pi (f_c+\delta f \frac{V_s(t)}{max(V_s(t))}) t + \phi_c)\). All of the units are appropriate
+	but it doesn't match what I have found in textbooks and <a href="https://en.wikipedia.org/wiki/Frequency_modulation"> online </a>. The instantaneous frequency expression below isn't much different from mine other
+	than the modulation index. Maybe my expression is also correct, but writing it out like it is below lets you easily visualize the modulation index. I think the expressions are pretty much equal except for a phase shift.
 	</p>
 	<p>
-	Let \(x=2\pi f_c t + \phi_c\) and \(y=2\pi\delta f\frac{V_s(t)}{max(V_s(t))}t+\phi\).
+	We will take a step back and let \(V_c(t) = A sin(2\pi \int f_m(\tau) d\tau) \) where \(f_m(\tau) = \frac{1}{2\pi}\frac{d\phi_m}{dt}\) is the instantaneous frequency and the \(m\) subnote defines the modulated signal. As above, we said the frequency of the modulated signal
+	\(f(\tau) = f_c + \delta f \beta(t) \) so we can substitute and simplify to the following: \(V_c(t) = A sin(2\pi f_c t + 2\pi \delta f \int \beta(\tau) d\tau) \).
+	<p>
+	To simplify, we will pretend that our signal has only a single frequency component and an amplitude of 1: \(V_s(t) = cos(2\pi f_s t)\). This allows the right side of the sum to simplify to \(2\pi \delta f \frac{sin(2\pi f_s t}{2\pi f_s}\). As you can see, we now have the \(\frac{\delta f}{f_s}\) term which
+	is known as the modulation index. If the frequency swing is smaller than the largest frequency in the signal, then the modulated signal is considered to be Narrow FM. If it is larger, then the modulated signal is considered to be wideband FM. If the amplitude of the modulated signal is something other than 1, 
+	then you multiply the frequency swing by the amplitude and compare to the highest frequency in the baseband signal. 
+	</p>
+	<h2> Upconversion/Downconversion</h2>
+	<p>
+	To understand the upconversion component of FM, it is best to first imagine what is going on in the frequency dimension of FM radio. We have a carrier signal with high frequency impulses (for the sake of argument). Our voice
+	signal is represented by a set of low frequencies. Imagine our voice signal as a rectangle with one end at 0 Hz and the other at 15kHz. We are taking our low frequency modulated voice signal and convolving it with
+	the higher frequency carrier such that the output resembles two rectangles with half the height centered around the positive and negative carrier frequencies. If we performed a convolution of the signals in the
+	frequency domain, the equivalent operation in the time domain is multiplication. That long explanation was just to tell you there are effectively two things going on in this equation: frequency upconversion by multiplying the time domain signals, and modulation of our voice.
+	</p>
+	<p>
+	Let \(x=2\pi f_c t + \phi_c\) and \(y=2\pi\delta f\beta (t) +\phi\).
 	\[V_m(t) = A_c cos(x) A_s cos(y)\]
 	\[V_m(t) = A_c A_s (\frac{e^{jx}+e^{-jx})}{2})(\frac{e^{jy}+e^{-jy})}{2})\]
 	\[V_m(t) = \frac{A_c A_s}{4}(e^{jx}e^{jy}+e^{jx}e^{-jy}+e^{-jx}e^{jy}+e^{-jx}e^{-jy})\]
@@ -55,11 +73,11 @@
 	</p>
 	<p>
 	Equation 2 is simplified by euler's formula. The resulting expression in equation 5 and 6 shows that we have frequency peaks spaced \(\delta f\) apart from the carrier
-	frequency peaks in both the positive and negative frequency dimension. In practice, our \(\beta\) value will fluctuate between -1 and 1, creating a rectangle centered
+	frequency peaks in both the positive and negative frequency dimension. You can also verify this with trig identities. In practice, our \(\beta (t)\) value will fluctuate between -1 and 1, creating a rectangle centered
 	at these carrier frequencies.
 	</p>
 	<p>
-	Demodulation performs the opposite operation as modulation. In order to extract the voice signal from an FM wave we convolve it with the carrier signal in the frequency dimension
+	Downconversion performs the opposite operation as upconversion. In order to extract the voice signal from an FM wave we convolve it with the carrier signal in the frequency dimension
 	which means multiplying it with the carrier signal in the time dimension. Draw the convolution out on a piece of paper first and then verify it with math:
 	\[V_d(t) = V_m(t) V_c(t)\]
 	\[V_d(t) = \frac{A_c A_s}{2}(cos(x+y) + cos(x-y)) A_c cos(x)\]
@@ -71,7 +89,29 @@
 	\[V_d(t) = \frac{A_c^2 A_s}{4}(cos(2x+y) + cos(2x-y)) + \frac{A_c^2 A_s}{2} cos(y)\]
 	</p>
 	<p>
-	Now we have two high frequency signals (two times as high as the original carrier) as well as the baseband signal. 
+	Now we have two high frequency signals (two times as high as the original carrier) as well as the baseband signal. You can also verify this with trig identities. 
+	</p>
+	
+	<h2> Demodulation </h2>
+	<p>
+	To actually perform the demodulation you used to need dedicated circuitry such as a slope detector, Foster-Seely discriminator, or ratio detector. The downside of this is that the circuits required a transformer which
+	makes it hard to build on a small integrated circuit (IC). Instead, quadrature detectors and phase-locked loops (PLL) are used. Chapter 6 in the 9th edition of Modern Electronic Communication by Beasley and Miller goes into great detail on
+	these topics. 
+	
+	<h2> Quadrature Detector </h2>
+	<p>
+	A quadrature detector works by using XOR logic with two signal inputs. The signal inputs are just two different phase shifted versions of the IF signal (the received signal after downconversion, filtering, and amplification). 
+	The first input is not phase shifted and the second input is phase shifted such that the downconverted carrier frequency is 90 degrees offset from the first input (hence the term quadrature detector). In the designed I learned about, 
+	the quadrature detector was preceeded by a limiter to control the amplitude of the IF signal in order to remove any unwanted amplitude modulation due to noise. Input 2 was phase shifted by tuning values in a RLC circuit. 
+	</p>
+	<p>
+	There is a low pass filter (RC) circuit at the output of the XOR gate. What happens is the phase shift caused by a change in frequency alters the width of the output pulse by shifting the input pulses slightly. The pulse width of the output
+	is directly proportional to the phase difference. Using the average level from the output of the RC circuit, you get a demodulated real valued signal. 
+	</p>
+	<h2> PLL </h2>
+	The phased-lock loop is a way of taking the IF input into a control feedback loop to produce the FM demodulated signal. It would probably be easiest to look up a picture of a PLL, but the three components in the loop are the phase comparator, low pass filter, and voltage controlled
+	oscillator. The loop works by comparing the VCO signal to the input signal in the phase comparator. The difference in phase between the two signals is sent out of the phase comparator as an error signal to the low pass filter and then output as the demodulated signal.
+	The filtered error also is fed back into the VCO to either increase or decrease the frequency of the signal.
 	</p>
 
         <h1> What I Learned </h1>
@@ -98,6 +138,10 @@
 			<li> Using a structure. I since modified my dynamically allocated approach to a structure-based approach so that I can also include the number of files that are readable. </li>
 			<li> How to read from binary data file. The issue I was having was that I did not include the path to the binary file. Since we know the file is encoded with unsigned 8 bit integer, each
 			value only takes up 1 byte. Needed to make a string concatenation function to be able to add the file path to the file name and read the binary file. </li>
+			<li> The downconverted signal of the RTLSDR arrives at the ADC, so you are sampling the downconverted signal. However, this does not mean you have frequency demodulated. There are 2 parts to
+			FM: upconversion and modulation. You successfully downconverted but you still have to demodulate. The downconversion brings your frequency down according to where you are tuned, so if you are tuned
+			to 94MHz, you will downconvert that to 0. So if your sampling frequency is 2.4MHz, you would be able to sample -1.2MHz to 1.2MHz according to Nyquist. This is really 92.8MHz to 95.2MHz though but you just
+			have to filter, decimate, and demodulate. </li>
 			</ol>
 			
 			</li>
@@ -119,6 +163,13 @@
         <li> How to return a multidimensional array from a function? </li>
 	<li> How to convert from string to int</li
 	<li> Writing a proper integer to string conversion file </li>
+	<li> Hit a road block today in trying to code the demodulator. Realizing that there is a downconverter in the RTLSDR
+	before the ADC, my samples are of the downconverted signal rather than the actual received signal itself. The question is,
+	what was the downconverter frequency? Is it always what you are currently set on when you receive the broadcast? If so then 
+	would everything already be FM demodulated? </li>
         </ol>
+	
+	<h1> Useful Links/Sources </h1>
+	<li> <a href=http://www.aaronscher.com/wireless_com_SDR/RTL_SDR_AM_spectrum_demod.html> MATLAB-based tutorial </a> </li>
     </body>
 </html>
