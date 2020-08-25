@@ -1,8 +1,11 @@
 from os import listdir
 from os.path import isfile, join
+import capture_info as ci
 
+global CAPTURE_PATH
 CAPTURE_PATH = "./captures/"
 
+##  prompts the user to choose which file they wish to analyze.
 def choose_file():
     myfiles = [f for f in listdir(CAPTURE_PATH) if isfile(join(CAPTURE_PATH, f))]
     numfiles = len(myfiles)
@@ -39,7 +42,7 @@ def byte2int(byte,signed=False,bigendian=True):
     print(hex_data)
     return int(hex_data,16)
 
-
+##  reads the binary file and returns the signal in complex form.
 def read_file(filename):
     mypath = CAPTURE_PATH+filename
     signal = []
@@ -53,7 +56,7 @@ def read_file(filename):
         signal.append(re+j*im)
     return signal
 
-
+##  main function
 if __name__ == "__main__":
     filename = choose_file()
     signal = read_file(filename)

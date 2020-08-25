@@ -6,6 +6,10 @@
 
 from os import listdir
 from os.path import isfile, join
+import process_fm as px
+
+global BLACKLIST
+BLACKLIST = ["metadata.txt"]
 
 #stores all of the pertinent info for the capture files
 class File:
@@ -21,7 +25,7 @@ def remove_entry(database,myfiles):
     num_entries = len(database)
     num_files = len(myfiles)
     db = []
-    metadata = open("metadata.txt","w")
+    metadata = open(px.CAPTURE_PATH + "metadata.txt","w")
     metadata.write(str(num_files)+"\n")
     metadata.write("filename,sample_rate(Hz),sample_period(s),gain(dB)\n")
     for i in range(0,num_entries):
@@ -34,7 +38,7 @@ def remove_entry(database,myfiles):
 
 #if you add a capture to the directory, this function will prompt the user to enter the metadata for the new file(s)
 def add_entry(myfiles,database):
-    metadata = open("metadata.txt","w")
+    metadata = open(px.CAPTURE_PATH + "metadata.txt","w")
     numentries = len(database)
     metadata.write(str(len(myfiles))+"\n")
     metadata.write("filename,sample_rate(Hz),sample_period(s),gain(dB)\n")
@@ -62,15 +66,17 @@ def add_entry(myfiles,database):
 def update_metadata():
     change = False #do we need to update the metadata file?
 
-    metadata = open("metadata.txt","r")
+    metadata = open(px.CAPTURE_PATH+"metadata.txt","r")
     try:
         num_files = int(metadata.readline())
         metadata.readline() #metatext
     except:
         num_files = 0
-    myfiles = [f for f in listdir(".") if isfile(join(".", f))]
-    myfiles.remove("metadata.txt")
-    myfiles.remove("capture_info.py")
+    myfiles = [f for f in listdir(px.CAPTURE_PATH) if isfile(join(".", f))]
+    print(px.CAPTURE_PATH)
+    print(myfiles)
+    for blacklisted in BLACKLIST:
+        myfiles.remove(blacklisted)
     num_captures = len(myfiles)
     if(num_files > num_captures):
         change = True
@@ -102,4 +108,5 @@ def fetch(filename):
     return MyFile
 
 if __name__=="__main__":
+    print(px.CAPTURE_PATH)
     update_metadata()

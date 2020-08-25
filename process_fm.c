@@ -94,6 +94,10 @@ void decode(struct input_files captures){
 	int counter = 1;
 	while(fread(&buff,1,2,fm_file) && counter < 10){
 		float inphase = buff[0]-127.5;
+		float quadrature = buff[1]-127.5;
+		
+		
+		//write to CSV file
 		char *firstbyte = itoa(buff[0],10);
 		//the below commented code does the same thing as itoa function.
 		//char buffer[8];

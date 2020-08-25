@@ -109,10 +109,49 @@
 	is directly proportional to the phase difference. Using the average level from the output of the RC circuit, you get a demodulated real valued signal. 
 	</p>
 	<h2> PLL </h2>
+	<p>
 	The phased-lock loop is a way of taking the IF input into a control feedback loop to produce the FM demodulated signal. It would probably be easiest to look up a picture of a PLL, but the three components in the loop are the phase comparator, low pass filter, and voltage controlled
 	oscillator. The loop works by comparing the VCO signal to the input signal in the phase comparator. The difference in phase between the two signals is sent out of the phase comparator as an error signal to the low pass filter and then output as the demodulated signal.
 	The filtered error also is fed back into the VCO to either increase or decrease the frequency of the signal.
 	</p>
+	<h3> Phase Detector </h3>
+	The phase detector operation is to determine the difference between the phase of the input FM signal and the output of the VCO. This error signal is sent to the low pass filter.
+	<h3> Low Pass Filter </h3>
+	Given the voltage of the error signal, the low pass filter models a simple RC circuit to determine the filtered output voltage level. You can model the output voltage with a first order differential equation:
+	Kirchoff's Voltage Law: \[V_i(t) = i(t)R + \frac{q}{C}\]
+	Divide by \(R\): \[i(t) + \frac{q}{RC} = \frac{V_i(t)}{R}\]
+	Take the derivative w.r.t. time: \[\frac{di(t)}{dt} + \frac{i(t)}{RC} = \frac{1}{R}\frac{dV_i(t)}{dt}\]
+	Multiply the integrating factor \(\mu(t)\): \[i'(t)\mu(t)+\frac{i(t)}{RC}\mu(t) = \frac{V_i'(t)}{R}\mu(t)\]
+	Let's let \(\mu(t)*\frac{1}{RC} = \mu'(t)\): \[i'(t)\mu(t)+i(t)\mu'(t) = \frac{V_i'(t)}{R}\mu(t)\]
+	The left side of the equation is equivalent to the product rule, so let's substitute: \[(i(t)\mu(t))' = \frac{V_i'(t)}{R}\mu(t)\]
+	Integrate both sides with respect to time, with \(c\) as a constant: \[i(t)\mu(t) = \frac{1}{R}\int V_i'(t)\mu(t)dt + c\]
+	Rearranging to solve for the current, we get (1): \[i(t) = \frac{\frac{1}{R}\int V_i'(t)\mu(t)dt + c}{\mu(t)}\]
+	Now let's solve for the integrating factor \(\mu(t)\): \[\frac{\mu(t)}{RC} = \mu'(t)\]
+	Divide both sides by \(\mu(t)\): \[\frac{1}{RC} = \frac{\mu'(t)}{\mu(t)}\]
+	The right hand side is equivalent to \((ln(\mu(t))'\) so substitute: \[\frac{1}{RC} = [ln(\mu(t))]'\]
+	Integrate with respect to time, where \(k\) is another arbitrary constant: \[\frac{1}{RC}\int dt = ln(\mu(t)) + k\]
+	Rearrange and log roll: \[\mu(t) = e^{\frac{t}{RC} + k}\]
+	Bring \(k\) down from the exponent since it is a constant: \[\mu(t) = ke^{\frac{t}{RC}}\]
+	Substitute back into (1): \[i(t) = \frac{\frac{k}{R}\int V_i'(t) e^{\frac{t}{RC}}dt + c}{ke^{\frac{t}{RC}}}\]
+	Now we can cancel \(k\) in the left part of the sum with the denominator, and the constant \(c\) can absorb \(k\): \[\frac{\frac{1}{R}\int V_i'(t)e^{\frac{t}{RC}}dt + c}{e^{\frac{t}{RC}}}\]
+	
+	The only confusing thing about the above equation is that our ADC samples are discrete time samples of the input voltage, not a continuous signal. It wouldn't make any sense to try and integrate our
+	samples, the above equation is really only useful in the continuous time (analog) domain. The way to apply the same low pass filter in a digital setting we will implement the infinite impulse response (IIR)
+	filter. Thankfully, our RC circuit analysis did not entirely go to waste. 
+	Kirchoff's Voltage Law says: \[V_i[n] = i[n]R + V_o[n]\]
+	we rearrange to get: \[V_i[n]-V_o[n] = i[n]R\]
+	we know that the current over the resistor and the capacitor is the same so: \[i[n] = \frac{q[n]-q[n-1]}{T}\]
+	where \(T\) is the sample period. We also know that \(q[\cdot] = CV_o[\cdot]\) so substituting: \[i[n] = \frac{C(V_o[n]-V_o[n-1])}{T}\]
+	and substituting back into the original expression yields: \[V_i[n]-V_o[n]=\frac{R C V_o[n]-R C V_o[n-1]}{T}\]
+	Rearranging to solve for \(V_o[n]\) yields: \[V_o[n] = \frac{T V_i[n]}{T+RC} + \frac{R C V_o[n-1]}{T+RC}\]
+	Great! Now we have a way given the previous output voltage (or the initial assumption) and the input voltage at time \(n\), we can 
+	determine the output voltage at time \(n\). The only thing left is to choose a \(RC\) value...wait how do we do this?
+	Recall that the time constant \(RC\) and the low-pass filter cutoff frequency are related via: \[f_c = \frac{1}{2\piRC}\]
+	Looking at the terms in the equation for \(V_o[n]\) above, we can conveniently rewrite it as: \[V_o[n] = \alpha V_i[n] + (1-\alpha) V_o[n-1]\]
+	where \(\alpha = \frac{T}{RC+T}\). This lets us solve for \(RC\) in terms of \(\alpha\): \[RC = T(\frac{1-\alpha}{\alpha})\]
+	and then solve for alpha in terms of our desired cutoff frequency: \[\alpha = \frac{2\pif_c T}{1+2\pi f_c T}\]
+	We can now design \(RC\) based on our desired cutoff frequency.
+	
 
         <h1> What I Learned </h1>
         <ul> 
@@ -152,6 +191,7 @@
 	<ul>
 		<li> rock_capture : 94500900Hz. 0dB gain. </li>
 		<li> lower freq capture : 27772000Hz. Also with 10dB gain.</li>
+		<li> FMcapture1: 100122000Hz. With 40dB gain. This is from <a href=http://www.aaronscher.com/wireless_com_SDR/RTL_SDR_AM_spectrum_demod.html> here </a></li>
 	</ul>
 	Each of these files take up 50MB of memory. Therefore, if I had to guess, there are 2 bytes per sample: one byte for In-phase and the other for Quadrature.
 	We can start with the assumption that these are time-based samples, so the first 2 bytes are from sample 1 at time 0.4 microseconds. The last sample is
@@ -160,16 +200,23 @@
         <h1> Questions </h1>
         The following questions came up while I was writing this program
         <ol>
-        <li> How to return a multidimensional array from a function? </li>
-	<li> How to convert from string to int</li
-	<li> Writing a proper integer to string conversion file </li>
-	<li> Hit a road block today in trying to code the demodulator. Realizing that there is a downconverter in the RTLSDR
+        <li> 17JUL - How to return a multidimensional array from a function? </li>
+	<li> 18JUL - How to convert from string to int</li
+	<li> 19JUL - Writing a proper integer to string conversion file </li>
+	<li> 19AUG - Hit a road block today in trying to code the demodulator. Realizing that there is a downconverter in the RTLSDR
 	before the ADC, my samples are of the downconverted signal rather than the actual received signal itself. The question is,
 	what was the downconverter frequency? Is it always what you are currently set on when you receive the broadcast? If so then 
 	would everything already be FM demodulated? </li>
+	<li> 21AUG - Ran into an issue today in trying to write the Python code. When looking at the ADC data (by printing out the 
+	bytes type after I read bytes) there are some strange characters that I didn't expect like ~ and } { stuff like that. I was just 
+	expecting some hexadecimal numbers. The thing is, I don't think this is wrong because the FM capture from the website looks the same
+	(although I think I should have ran my captures with more gain). </li>
         </ol>
 	
 	<h1> Useful Links/Sources </h1>
+	<ol>
 	<li> <a href=http://www.aaronscher.com/wireless_com_SDR/RTL_SDR_AM_spectrum_demod.html> MATLAB-based tutorial </a> </li>
+	<li> Modern Electronic Communication, 9th Edition. Beasley and Miller. </li>
+	</ol>
     </body>
 </html>
