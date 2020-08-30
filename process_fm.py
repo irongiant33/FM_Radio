@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy
 import pickle
 import sys
-import wave
+import wave, struct
 
 global CAPTURE_PATH
 CAPTURE_PATH = "./captures/"
@@ -173,12 +173,22 @@ def pll_decode(signal,signal_info):
 
     return decoded_signal
 
-def write_wav(signal,signal_info)
+def write_wav(signal,signal_info):
     shortname = (signal_info.name).split('.')[0]
     f = wave.open(OUTPUT_PATH+shortname+'.wav','wb')
+    f.setnchannels(1) #mono
+    f.setsampwidth(2)
+    f.setframerate(signal_info.sample_rate)
+    for val in signal:
+        value = int(abs(val))
+        data = struct.pack('<h', value)
+        f.writeframesraw(data)
+    f.close()
+    return
 
 ##  main function
 if __name__ == "__main__":
+    print("Usage: python3 process_fm.py [sample portion] [decimation factor]\n")
     filename = choose_file()
     if(len(sys.argv) > 1):
         signal = read_file(filename,sys.argv[1])
@@ -186,7 +196,7 @@ if __name__ == "__main__":
         signal = read_file(filename,0)
     signal_info = ci.fetch(filename)
 
-    plot(signal,signal_info,1) #take FFT and plot signal
+    #plot(signal,signal_info,1) #take FFT and plot signal
 
     factor = 8
     if(len(sys.argv)>2):
@@ -197,16 +207,17 @@ if __name__ == "__main__":
     decimated,signal_info = decimate(signal,signal_info,factor)
     #this decimated signal focuses in on the radio station centered at 0 Hz
 
-    plot(decimated,signal_info,1)
+    #plot(decimated,signal_info,1)
 
     decoded = pll_decode(signal,signal_info)
     #this decodes the FM radio station, but it is still WFM
 
-    plot(decoded,signal_info,1)
+    #plot(decoded,signal_info,1)
 
-    mono_channel,signal_info = decimate(decoded,signal_info,10)
+    mono_channel,signal_info = decimate(decoded,signal_info,8)
     #this decimates again and brings the mono channel into focus
 
-    plot(mono_channel,signal_info,1)
-
+    #plot(mono_channel,signal_info,1)
+    
     write_wav(mono_channel,signal_info)
+    print("Your .wav file is ready to listen to!")
